@@ -3,6 +3,8 @@ Horror Vacui
 Ejemplo de Machine Learning
 UCA Rosario Mayo 2023
 Roni Bandini
+
+Oled screen https://www.dfrobot.com/product-2019.html SDA y SCL to pins A4 and A5, VCC and GND
 */
 
 #define EIDSP_QUANTIZE_FILTERBANK   0
@@ -29,6 +31,10 @@ static bool debug_nn = false; // Set this to true to see e.g. features generated
 
 int myCounter=0;
 float lastInference=0;
+float eeeInference=0;
+float ambientInference=0;
+float eeeLimit=0.8;
+float ambientLimit=0.5;
 
 void setup()
 {
@@ -45,11 +51,9 @@ void setup()
  
     do {
       u8g2.clear();
-      u8g2.setCursor(/* x=*/0, /* y=*/5);    
+      u8g2.setCursor(/* x=*/0, /* y=*/15);    
       u8g2.print("Horror Vacui");
-      u8g2.setCursor(/* x=*/0, /* y=*/20); 
-      u8g2.print("Machine Learning");
-      u8g2.setCursor(/* x=*/0, /* y=*/35); 
+      u8g2.setCursor(/* x=*/0, /* y=*/30); 
       u8g2.print("@RoniBandini");      
     } while ( u8g2.nextPage() );
     
@@ -73,7 +77,7 @@ void setup()
 
 void loop()
 {
-    ei_printf("Starting inferencing in 2 seconds...\n");
+    ei_printf("Inferencing in 2 seconds...\n");
    Serial.println("Counter: " + String(myCounter));
 
    do {
@@ -81,7 +85,7 @@ void loop()
     u8g2.setCursor(/* x=*/0, /* y=*/15);    
     u8g2.print("Horror Vacui");
     u8g2.setCursor(/* x=*/0, /* y=*/30); 
-    u8g2.print("Muestreando");
+    u8g2.print("Esperando...");
     u8g2.setCursor(0, 30);  
     } while ( u8g2.nextPage() );
 
@@ -92,7 +96,7 @@ void loop()
     do {
     u8g2.clear();
     u8g2.setCursor(/* x=*/0, /* y=*/15);    
-    u8g2.print("EEE: "+String(lastInference)+"%");
+    u8g2.print("Eee: "+String(lastInference)+"%");
     u8g2.setCursor(/* x=*/0, /* y=*/30); 
     u8g2.print("Contador: "+String(myCounter));
     u8g2.setCursor(0, 30);  
@@ -123,15 +127,29 @@ void loop()
     ei_printf(": \n");
     
     for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
+        
         ei_printf("    %s: %.5f\n", result.classification[ix].label, result.classification[ix].value);
 
         lastInference=(result.classification[ix].value)*100;
-        if (result.classification[ix].label=="eee" and result.classification[ix].value>0.9){
-            myCounter++;
-    
+        
+        
+        if (result.classification[ix].label=="eee"){
+            eeeInference=result.classification[ix].value;
+            
+        }
+
+         if (result.classification[ix].label=="ambiente"){
+            ambientInference=result.classification[ix].value;
+            
         }
           
     }
+
+    if (eeeInference>eeeLimit and ambientInference<ambientLimit){
+      myCounter++;    
+      }
+
+    
 #if EI_CLASSIFIER_HAS_ANOMALY == 1
     ei_printf("    anomaly score: %.3f\n", result.anomaly);
 #endif
