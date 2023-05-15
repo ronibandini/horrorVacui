@@ -33,8 +33,8 @@ int myCounter=0;
 float lastInference=0;
 float eeeInference=0;
 float ambientInference=0;
-float eeeLimit=0.8;
-float ambientLimit=0.5;
+float eeeLimit=0.95;
+float ambientLimit=0.2;
 
 void setup()
 {
@@ -146,7 +146,21 @@ void loop()
     }
 
     if (eeeInference>eeeLimit and ambientInference<ambientLimit){
-      myCounter++;    
+      ei_printf("Sumando contador");
+      Serial.println(String(eeeInference));
+      Serial.println(String(ambientInference));
+      myCounter++;  
+
+      do {
+      u8g2.clear();
+      u8g2.setCursor(/* x=*/0, /* y=*/15);    
+      u8g2.print("Horror Vacui");
+      u8g2.setCursor(/* x=*/0, /* y=*/30); 
+      u8g2.print("DETECTADO");
+      u8g2.setCursor(0, 30);  
+      } while ( u8g2.nextPage() );
+    
+      delay(3000);  
       }
 
     
